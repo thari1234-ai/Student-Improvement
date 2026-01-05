@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attendance</title>
+<style>
+body { font-family: Arial; text-align:center; background: #222; color:white; }
+button { padding: 12px; font-size: 18px; margin: 10px; cursor:pointer; }
+table { margin:auto; border-collapse: collapse; width:60%; }
+th, td { padding:10px; border:1px solid white; }
+</style>
+</head>
+<body>
+<h1>Mark Attendance</h1>
+<button onclick="markAttendance()">Capture Face</button>
+<h2>Status: <span id="status">Idle</span></h2>
+<table>
+<tr><th>Name</th><th>Time</th></tr>
+<tbody id="attendanceBody"></tbody>
+</table>
+
+<script>
+async function markAttendance() {
+    document.getElementById("status").innerText = "Capturing...";
+    const res = await fetch("/capture", { method: "POST" });
+    const data = await res.json();
+    
+    if(data.status === "success") {
+        document.getElementById("status").innerText = `Marked ${data.name}`;
+        loadAttendance();
+    } else if(data.status === "unknown") {
+        document.getElementById("status").innerText = "Face Not Recognized";
+    } else {
+        document.getElementById("status").innerText = "No face detected";
+    }
+}
+
+async function loadAttendance() {
+    const res = await fetch("/get_attendance");
+    const data = await res.json();
+    const tbody = document.getElementById("attendanceBody");
+    tbody.innerHTML = "";
+    data.forEach(record => {
+        tbody.innerHTML += `<tr><td>${record.name}</td><td>${record.time}</td></tr>`;
+    });
+}
+
+loadAttendance();
+</script>
+</body>
+</html>
